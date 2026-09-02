@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """RDK S100: YOLOE11 HBM vehicle detection + strict Ukrainian plate OCR.
-   Паралельна обробка кількох потоків/файлів, walking-camera режим та PIO тригер.
-   Зміна: модель ініціалізується централізовано в main() і передається в worker-threads
-         (з блокуванням навколо model.run() для безпечного шерингу BPU).
+
+Changes in async-inference branch:
+- Optional asynchronous inference (--async-infer): shared queue + one inference thread.
+- New CLI options: --async-infer, --infer-queue-size, --infer-timeout, --infer-drop (drop-oldest/drop-newest/block).
+- The detector is still created once in main() and shared; inference thread serializes model.run() access.
+- Added simple MJPEG test server script under tests/ to simulate two streams locally.
 """
 
 import argparse
@@ -14,6 +17,7 @@ import signal
 import sys
 import threading
 import time
+import queue
 from collections import Counter
 from datetime import datetime
 
@@ -149,6 +153,7 @@ class _SysfsGPIO:
 
 
 # --- utility functions (boxes, crop validity, iou, ocr prep) ---
+
 def clamp_box(box, width, height):
     x1, y1, x2, y2 = (int(value) for value in box)
     x1 = max(0, min(width - 1, x1))
@@ -183,6 +188,8 @@ def image_sharpness(image):
 
 # --- Detector wrapper (same as sample) ---
 class YoloE11Detector:
+    """BBox-only part of the official S100 YOLOE11 segmentation postprocess."""
+
     def __init__(self, model_path, score_threshold, nms_threshold):
         log("[INFO] Loading YOLOE11:")
         log(model_path)
@@ -318,56 +325,4 @@ def rectify_candidate(roi, contour):
         return None
     destination = np.array(
         [
-            [0, 0],
-            [target_width - 1, 0],
-            [target_width - 1, target_height - 1],
-            [0, target_height - 1],
-        ],
-        dtype=np.float32,
-    )
-    transform = cv2.getPerspectiveTransform(source, destination)
-    return cv2.warpPerspective(roi, transform, (target_width, target_height))
-
-
-def find_plate_candidate(vehicle, walking_camera=False):
-    if not crop_valid(vehicle):
-        return None
-    height, width = vehicle.shape[:2]
-    if width < MIN_VEHICLE_WIDTH or height < MIN_VEHICLE_HEIGHT:
-        return None
-    roi_y = int(height * (0.32 if walking_camera else 0.42))
-    roi = vehicle[roi_y:height, :]
-    if not crop_valid(roi):
-        return None
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
-    blackhat = cv2.morphologyEx(
-        enhanced,
-        cv2.MORPH_BLACKHAT,
-        cv2.getStructuringElement(cv2.MORPH_RECT, (17, 5)),
-    )
-    binary = cv2.threshold(blackhat, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    binary = cv2.morphologyEx(
-        binary,
-        cv2.MORPH_CLOSE,
-        cv2.getStructuringElement(cv2.MORPH_RECT, (19, 3)),
-    )
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    candidates = []
-    for contour in contours:
-        x, y, candidate_w, candidate_h = cv2.boundingRect(contour)
-        if candidate_h <= 0:
-            continue
-        ratio = candidate_w / float(candidate_h)
-        area = candidate_w * candidate_h
-        min_ratio = 1.7 if walking_camera else MIN_PLATE_RATIO
-        max_ratio = 9.0 if walking_camera else MAX_PLATE_RATIO
-        min_width = 35 if walking_camera else MIN_PLATE_WIDTH
-        min_height = 8 if walking_camera else MIN_PLATE_HEIGHT
-        min_area = 350 if walking_camera else 700
-        max_area_fraction = 0.13 if walking_camera else 0.10
-
-        if not (min_ratio <= ratio <= max_ratio):
-            continue
-... (file continues)
+{
