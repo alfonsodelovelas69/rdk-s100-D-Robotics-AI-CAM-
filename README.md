@@ -262,4 +262,121 @@ python3 /root/main.py --stream "rtsp://user:pass@192.168.50.17:8554/cam1" --rtsp
 
 python3 /root/main.py --stream "http://SERVER:PORT/video" --frame-skip 2 --ocr-interval 8 --confirmations 2 --save-unknown --pio-pin 17 --pio-duration 0.35
 
+ВИВІД РІО 
 
+
+
+root@ubuntu:~# gpioinfo
+gpiochip0 - 32 lines:
+        line   0:      unnamed       unused   input  active-high
+        line   1:      unnamed       unused   input  active-high
+        line   2:      unnamed       unused   input  active-high
+        line   3:      unnamed       unused   input  active-high
+        line   4:      unnamed       unused   input  active-high
+        line   5:      unnamed       unused   input  active-high
+        line   6:      unnamed       unused   input  active-high
+        line   7:      unnamed       unused   input  active-high
+        line   8:      unnamed       unused   input  active-high
+        line   9:      unnamed       unused   input  active-high
+        line  10:      unnamed       unused   input  active-high
+        line  11:      unnamed       unused   input  active-high
+        line  12:      unnamed       unused   input  active-high
+        line  13:      unnamed       unused   input  active-high
+        line  14:      unnamed       unused   input  active-high
+        line  15:      unnamed        "scl"  output  active-high [used]
+        line  16:      unnamed        "sda"   input  active-high [used]
+        line  17:      unnamed       unused   input  active-high
+        line  18:      unnamed       unused   input  active-high
+        line  19:      unnamed       unused   input  active-high
+        line  20:      unnamed       unused   input  active-high
+        line  21:      unnamed       unused   input  active-high
+        line  22:      unnamed       unused   input  active-high
+        line  23:      unnamed       unused   input  active-high
+        line  24:      unnamed       unused   input  active-high
+        line  25:      unnamed      "reset"  output  active-high [used]
+        line  26:      unnamed       unused   input  active-high
+        line  27:      unnamed       unused   input  active-high
+        line  28:      unnamed       unused   input  active-high
+        line  29:      unnamed       unused   input  active-high
+        line  30:      unnamed       unused   input  active-high
+        line  31:      unnamed       unused   input  active-high
+gpiochip1 - 6 lines:
+        line   0:      unnamed       unused   input  active-high
+        line   1:      unnamed       unused   input  active-high
+        line   2:      unnamed       unused   input  active-high
+        line   3:      unnamed       unused   input  active-high
+        line   4:      unnamed       unused   input  active-high
+        line   5:      unnamed       unused   input  active-high
+gpiochip2 - 18 lines:
+        line   0:      unnamed       unused   input  active-high
+        line   1:      unnamed       unused   input  active-high
+        line   2:      unnamed       unused   input  active-high
+        line   3:      unnamed       unused   input  active-high
+        line   4:      unnamed       unused   input  active-high
+        line   5:      unnamed       unused   input  active-high
+        line   6:      unnamed       unused   input  active-high
+        line   7:      unnamed "io-ext-reset" output active-high [used]
+        line   8:      unnamed        "scl"  output  active-high [used]
+        line   9:      unnamed        "sda"   input  active-high [used]
+        line  10:      unnamed        "scl"  output  active-high [used]
+        line  11:      unnamed        "sda"   input  active-high [used]
+        line  12:      unnamed        "scl"  output  active-high [used]
+        line  13:      unnamed        "sda"   input  active-high [used]
+        line  14:      unnamed        "scl"  output  active-high [used]
+        line  15:      unnamed        "sda"   input  active-high [used]
+        line  16:      unnamed        "scl"  output  active-high [used]
+        line  17:      unnamed        "sda"   input  active-high [used]
+gpiochip3 - 17 lines:
+        line   0:      unnamed        "irq"   input  active-high [used open-source]
+        line   1:      unnamed       unused   input  active-high
+        line   2:      unnamed       unused   input  active-high
+        line   3:      unnamed       unused   input  active-high
+        line   4:      unnamed       unused   input  active-high
+        line   5:      unnamed       unused   input  active-high
+        line   6:      unnamed       unused   input  active-high
+        line   7:      unnamed       unused   input  active-high
+        line   8:      unnamed       unused   input  active-high
+        line   9:      unnamed       unused   input  active-high
+        line  10:      unnamed       unused   input  active-high
+        line  11:      unnamed       unused   input  active-high
+        line  12:      unnamed       unused   input  active-high
+        line  13:      unnamed       unused   input  active-high
+        line  14:      unnamed  ":activity"  output  active-high [used]
+        line  15:      unnamed       unused   input  active-high
+        line  16:      unnamed       unused   input  active-high
+gpiochip4 - 8 lines:
+        line   0: "AMS3042_PORSTN0" "ep-ponrst" output active-low [used]
+        line   1: "DES3_PWRON"       unused   input  active-high
+        line   2: "DES1_POC_EN" unused input active-high
+        line   3: "M2.M_PCIE_RST" "ep-perst" output active-low [used]
+        line   4: "DES2_PWRON"       unused   input  active-high
+        line   5: "ASM3042_PCIE_RSTN1" "ep-perst" output active-low [used]
+        line   6: "M2.M_ALERT"       unused   input  active-high
+        line   7: "AMS3042_PORSTN1" "ep-ponrst" output active-low [used]
+gpiochip5 - 8 lines:
+        line   0: "SGMII0_PHYRSTB" unused input active-high
+        line   1: "SGMII1_PHYRSTB" unused input active-high
+        line   2: "M2.E_PCIE_RST" "ep-perst" output active-low [used]
+        line   3: "M2.E_WIFI_REG" "ep-ponrst" output active-low [used]
+        line   4: "M2.E_BT_REG" "sysfs" output active-high [used]
+        line   5: "M2.E_SDIO_RST" unused input active-high
+        line   6: "M2.E_BT_DEVICE_WAKE" unused input active-high
+        line   7:      unnamed       unused   input  active-high
+gpiochip6 - 16 lines:
+        line   0: "40PIN_GPIO0" unused input active-high
+        line   1: "40PIN_GPIO1" unused input active-high
+        line   2: "40PIN_GPIO2" unused input active-high
+        line   3: "40PIN_GPIO3" unused input active-high
+        line   4: "40PIN_GPIO4" unused input active-high
+        line   5: "40PIN_GPIO5" unused input active-high
+        line   6: "40PIN_GPIO6" unused input active-high
+        line   7: "40PIN_GPIO7" unused input active-high
+        line   8: "40PIN_GPIO8" unused input active-high
+        line   9: "40PIN_GPIO9" unused input active-high
+        line  10: "ALTER_3v3_N" unused input active-high
+        line  11: "DES2_POC_EN" unused input active-high
+        line  12: "DES3_POC_EN" unused input active-high
+        line  13: "UPE_CLKREQ3" unused input active-high
+        line  14: "ASM2806_PCIE_RST" "switch-perst" output active-low [used]
+        line  15: "ASM3042_PCIE_RSTN0" "ep-perst" output active-low [used]
+root@ubuntu:~#
