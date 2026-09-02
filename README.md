@@ -262,6 +262,9 @@ python3 /root/main.py --stream "rtsp://user:pass@192.168.50.17:8554/cam1" --rtsp
 
 python3 /root/main.py --stream "http://SERVER:PORT/video" --frame-skip 2 --ocr-interval 8 --confirmations 2 --save-unknown --pio-pin 17 --pio-duration 0.35
 
+
+
+
 ВИВІД РІО 
 
 
