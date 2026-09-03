@@ -78,6 +78,13 @@ class PioTrigger:
             self.last_state = active_value
 
 
+class NoopTrigger:
+    """Keep video processing alive when the requested PIO is unavailable."""
+
+    def activate(self, duration=DEFAULT_PIO_PULSE):
+        log("[WARN] PIO trigger skipped because the PIO device is unavailable")
+
+
 class _SysfsGPIO:
     def __init__(self, pin, active_high=True, sysfs_root="/sys/class/gpio"):
         self.pin = int(pin)
@@ -649,7 +656,11 @@ def parse_args():
 
 
 def run_source_worker(source, args, notebook, trigger, shared_state):
-    detector = YoloE11Detector(args.model, args.score_thres, args.nms_thres)
+    try:
+        detector = YoloE11Detector(args.model, args.score_thres, args.nms_thres)
+    except Exception as exc:
+        log("[ERROR] Worker initialization failed for %s: %s" % (source, exc))
+        return
     capture = cv2.VideoCapture(source)
     if not capture.isOpened():
         log("[WARN] Cannot open source: %s" % source)
@@ -684,7 +695,13 @@ def run_source_worker(source, args, notebook, trigger, shared_state):
             if frame_number % args.frame_skip:
                 continue
 
-            detections, bpu_ms = detector.detect(frame)
+            try:
+                detections, bpu_ms = detector.detect(frame)
+            except Exception as exc:
+                log("[ERROR] BPU detection failed for %s at frame %d: %s" % (
+                    source, frame_number, exc
+                ))
+                break
             processed += 1
             bpu_total += bpu_ms
             detections_count += len(detections)
@@ -781,7 +798,7 @@ def main():
     if not os.path.isfile(args.model):
         raise SystemExit("Model not found: %s" % args.model)
 
-    if args.rtsp_tcp and source.lower().startswith("rtsp://"):
+    if args.rtsp_tcp and any(url.lower().startswith("rtsp://") for url in (stream_sources or [source])):
         os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
     # Headless / SSH / PuTTY sessions do not require a local X display for RTSP capture.
@@ -801,7 +818,11 @@ def main():
     ))
     log("[INFO] PIO trigger pin=%d pulse=%.2fs" % (args.pio_pin, args.pio_duration))
 
-    trigger = PioTrigger(pin=args.pio_pin)
+    try:
+        trigger = PioTrigger(pin=args.pio_pin)
+    except (OSError, IOError) as exc:
+        log("[WARN] PIO pin %d unavailable: %s" % (args.pio_pin, exc))
+        trigger = NoopTrigger()
     shared_state = {"lock": threading.Lock(), "triggered": set()}
 
     if is_stream and len(stream_sources) > 1:
