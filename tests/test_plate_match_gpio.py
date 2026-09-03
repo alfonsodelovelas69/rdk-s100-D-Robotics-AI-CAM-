@@ -103,3 +103,30 @@ def test_gpio_trigger_exports_and_pulses(tmp_path):
     trigger = module.PioTrigger(pin=17, active_high=True, sysfs_root=gpio_dir, gpio_factory=FakeGPIO)
     trigger.activate(duration=0.01)
     assert trigger.last_state == 1
+
+
+def test_video_watch_supports_multiple_rtsp_sources():
+    spec = importlib.util.spec_from_file_location("video_watch_mod", ROOT / "video_plate_watch.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    streams = module.parse_streams(['rtsp://cam1', 'rtsp://cam2'])
+    assert streams == ['rtsp://cam1', 'rtsp://cam2']
+
+    streams = module.parse_streams('rtsp://cam1,rtsp://cam2')
+    assert streams == ['rtsp://cam1', 'rtsp://cam2']
+
+
+def test_video_watch_alternates_streams_by_processed_frame_count():
+    spec = importlib.util.spec_from_file_location("video_watch_scheduler_mod", ROOT / "video_plate_watch.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    scheduler = module.FrameTurnScheduler(stream_count=2, frames_per_turn=3)
+    assert scheduler.wait_turn(0) is True
+    for _ in range(3):
+        scheduler.complete_frame(0)
+    assert scheduler.wait_turn(1) is True
+
+    scheduler.deactivate(1)
+    assert scheduler.wait_turn(0) is True
